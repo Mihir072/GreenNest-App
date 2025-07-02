@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:greennest/Auth/login_screen.dart';
 import 'package:greennest/Helper/loader_extensions.dart';
@@ -43,12 +45,16 @@ class RegisterScreenState extends State<RegisterScreen> {
     );
     context.hideLoader();
     if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
       CustomToast.show(
           title: successRegister,
           message: successRegisterMessage,
           bgColor: green,
           iconUrl: successRegisterIcon);
-      context.push(HomeScreen());
+      context.push(HomeScreen(
+        email: data["email"],
+        token: data["email"],
+      ));
     } else {
       CustomToast.show(
           title: failedRegister,

@@ -55,7 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
           );
 
           print('Token: ${data["token"]}');
-          context.push(HomeScreen());
+          context.push(HomeScreen(
+            email: data["email"],
+            token: data["token"],
+          ));
         } else {
           CustomToast.show(
             title: failedLogin,

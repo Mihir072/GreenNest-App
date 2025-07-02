@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:greennest/Helper/email_request.dart';
+import 'package:greennest/Util/strings.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -60,5 +62,76 @@ class ApiService {
       }),
     );
     return response;
+  }
+
+  //--------------------- SHOW ALL PLANTS ---------------------//
+
+  static Future<http.Response> getPlants() async {
+    return await http.get(Uri.parse('$baseUrl/plants'));
+  }
+
+  //--------------------- SEARCH PLANTS BY NAME ---------------------//
+
+  static Future<http.Response> searchPlants(String query) async {
+    return await http.get(Uri.parse('$baseUrl/plants/search?q=$query'));
+  }
+
+  //--------------------- PLACE ORDER ---------------------//
+
+  static Future<http.Response> placeOrder({
+    required String token,
+    required List<Map<String, dynamic>> items,
+    required int totalAmount,
+    required String address,
+    required String name,
+  }) async {
+    return await http.post(
+      Uri.parse('$baseUrl/orders/place'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'items': items,
+        'totalAmount': totalAmount,
+        'address': address,
+        'name': name
+      }),
+    );
+  }
+
+  //--------------------- GET MY ORDERS ---------------------//
+
+  static Future<http.Response> getMyOrders({required String token}) async {
+    return await http.get(
+      Uri.parse('$baseUrl/orders/my-orders'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+  }
+
+  //--------------------- GET USER INFO ---------------------//
+
+  static Future<http.Response> getUserByEmail(String email) async {
+    return await http.get(Uri.parse('$baseUrl/auth/users/$email'));
+  }
+
+  //--------------------- Email Sending ---------------------//
+
+  static Future<http.Response> sendOrderEmail({
+    required String token,
+    required EmailRequest emailRequest,
+  }) async {
+    final url = Uri.parse('$baseUrl/orders/send-confirmation-email');
+
+    return await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(emailRequest.toJson()),
+    );
   }
 }
