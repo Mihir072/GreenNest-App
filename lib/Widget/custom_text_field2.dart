@@ -12,11 +12,13 @@ class CustomTextField2 extends StatefulWidget {
   final String hintText;
   final TextInputType keyboardType;
   final String textFieldImage;
+  final ValueChanged<String>? onChanged;
   const CustomTextField2(
       {super.key,
       required this.hintText,
       required this.keyboardType,
-      required this.textFieldImage});
+      required this.textFieldImage,
+      this.onChanged});
 
   @override
   State<CustomTextField2> createState() => _CustomTextField2State();
@@ -54,8 +56,9 @@ class _CustomTextField2State extends State<CustomTextField2> {
       child: TextFormField(
         keyboardType: widget.keyboardType,
         onChanged: (val) {
-          setState(() => searchQuery = val);
-          fetchPlants();
+          if (widget.onChanged != null) {
+            widget.onChanged!(val); // ✅ notify parent
+          }
         },
         decoration: InputDecoration(
           fillColor: white,
@@ -85,7 +88,7 @@ class _CustomTextField2State extends State<CustomTextField2> {
               widget.textFieldImage,
               width: 24,
               height: 24,
-              color: grey,
+              color: black,
             ),
           ),
         ),

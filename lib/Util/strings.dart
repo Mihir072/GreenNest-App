@@ -49,3 +49,5 @@ const newPassword = "New Password";
 //----------- HOME SCREEN -----------//
 
 const searchPlants = 'Search Plants..';
+const welcomeLine = '''Welcome to Green Harbor, your go-to 
+destination for all things green and thriving! 🌿''';

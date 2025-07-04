@@ -34,17 +34,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    fetchPlants();
+    fetchPlants('');
     fetchUserInfo();
   }
 
-  Future<void> fetchPlants() async {
-    final response = searchQuery.isEmpty
+  Future<void> fetchPlants(String query) async {
+    final response = query.isEmpty
         ? await ApiService.getPlants()
-        : await ApiService.searchPlants(searchQuery);
+        : await ApiService.searchPlants(query);
 
     if (response.statusCode == 200) {
       setState(() {
+        searchQuery = query;
         plants = jsonDecode(response.body);
       });
     }
@@ -77,85 +78,176 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: white,
-      //--------------------- APPBAR ---------------------//
-      appBar: AppBar(
-        backgroundColor: white,
-        title: CustomText(
-            text: 'Welcome, $username',
-            textColor: black,
-            textSize: GSizes.fontSizeLg,
-            fontWeight: FontWeight.bold),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(profileHome),
-                radius: 20,
-              ),
-              onTap: () => context.push(
-                ProfileScreen(email: widget.email, token: widget.token),
-              ),
-            ),
-          ),
-        ],
-      ),
+      backgroundColor: splashScreenColor,
+
       //--------------------- BODY ---------------------//
       body: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(
+              height: 30,
+            ),
             Padding(
-              padding: Spacing.all8,
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(
+                      text: 'Hey, $username',
+                      textColor: white,
+                      textSize: GSizes.fontSizeLg,
+                      fontWeight: FontWeight.bold),
+                  GestureDetector(
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(profileHome),
+                      radius: 20,
+                    ),
+                    onTap: () => context.push(
+                      ProfileScreen(email: widget.email, token: widget.token),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(right: 8, left: 12, bottom: 30),
               child: CustomText(
-                  text:
-                      '''Welcome to Green Harbor, your go-to destination for all things green and thriving! 🌿''',
-                  textColor: black,
+                  text: welcomeLine,
+                  textColor: white,
                   textSize: GSizes.fontSizeSm,
                   fontWeight: FontWeight.normal),
             ),
             Padding(
-              padding: Spacing.all8,
+              padding: EdgeInsets.only(right: 15, left: 15),
               child: CustomTextField2(
-                  hintText: searchPlants,
-                  keyboardType: TextInputType.text,
-                  textFieldImage: treeHome),
+                hintText: searchPlants,
+                keyboardType: TextInputType.text,
+                textFieldImage: treeHome,
+                onChanged: (val) {
+                  fetchPlants(val);
+                },
+              ),
+            ),
+
+            SizedBox(
+              height: context.heightPct(6),
             ),
             //--------------------- PLANT LIST ---------------------//
             Expanded(
-              child: ListView.builder(
-                itemCount: plants.length,
-                itemBuilder: (context, index) {
-                  final plant = plants[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                        color: white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                            offset: const Offset(0,
-                                4), // You can make it (0, 0) for equal all sides
-                          ),
-                        ],
-                        border: Border.all(color: borderGrey),
-                        borderRadius:
-                            BorderRadius.circular(GSizes.borderRadiusMd)),
-                    margin: Spacing.all8,
-                    child: ListTile(
-                      leading: Image.network(plant['imageUrl'],
-                          width: 50, height: 50, fit: BoxFit.cover),
-                      title: Text(plant['name']),
-                      subtitle: Text("₹${plant['price']}"),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.add_shopping_cart),
-                        onPressed: () => addToCart(plant),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: homeBackgroundColor,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(36),
+                        topRight: Radius.circular(36))),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 25),
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      await fetchPlants('');
+                      await fetchPlants(searchQuery);
+                    },
+                    child: GridView.builder(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.75,
                       ),
+                      padding: EdgeInsets.all(16),
+                      itemCount: plants.length,
+                      itemBuilder: (context, index) {
+                        final plant = plants[index];
+
+                        return Material(
+                          elevation: 4,
+                          borderRadius:
+                              BorderRadius.circular(GSizes.borderRadiusMd),
+                          shadowColor: Colors.grey.shade200,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius:
+                                  BorderRadius.circular(GSizes.borderRadiusMd),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Image
+                                Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(
+                                          GSizes.borderRadiusMd),
+                                    ),
+                                    child: Image.network(
+                                      plant['imageUrl'],
+                                      height: 100,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+
+                                // Text Info
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        text: plant['name'],
+                                        textColor: black,
+                                        textSize: GSizes.fontSizeMd,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      CustomText(
+                                        text: "₹${plant['price']}",
+                                        textColor: Colors.green.shade700,
+                                        textSize: GSizes.fontSizeMd,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Add Button (No Spacer)
+
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade100,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () => addToCart(plant),
+                                        icon: Icon(
+                                          Icons.add_circle,
+                                          color: Colors.green.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
           ],
