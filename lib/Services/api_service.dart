@@ -133,4 +133,18 @@ class ApiService {
       body: jsonEncode(emailRequest.toJson()),
     );
   }
+
+  //--------------------- Logout ---------------------//
+
+  static Future<http.Response> logout(String token) async {
+    final url = Uri.parse('$baseUrl/auth/logout');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return response;
+  }
 }

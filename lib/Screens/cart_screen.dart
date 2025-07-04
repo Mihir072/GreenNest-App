@@ -129,7 +129,9 @@ GreenNest Team
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cart')),
+      appBar: AppBar(
+        title: const Text('Cart'),
+      ),
       body: Column(
         children: [
           Expanded(

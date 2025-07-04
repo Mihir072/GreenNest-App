@@ -23,3 +23,8 @@ const successForgotPasswordIcon =
     "https://cdn-icons-png.flaticon.com/128/17525/17525250.png";
 const failedForgotPasswordIcon =
     "https://cdn-icons-png.flaticon.com/128/9795/9795441.png";
+
+//----------- HOME SCREEN -----------//
+
+const treeHome = "https://cdn-icons-png.flaticon.com/128/9239/9239361.png";
+const profileHome = "https://cdn-icons-gif.flaticon.com/17644/17644526.gif";

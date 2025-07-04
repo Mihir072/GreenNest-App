@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
 
           print('Token: ${data["token"]}');
-          context.push(HomeScreen(
+          context.pushReplacement(HomeScreen(
             email: data["email"],
             token: data["token"],
           ));

@@ -1,4 +1,15 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
+import 'package:greennest/Helper/media_query_extensions.dart';
+import 'package:greennest/Helper/navigation_extensions.dart';
+import 'package:greennest/Helper/spacing_helper.dart';
+import 'package:greennest/Util/colors.dart';
+import 'package:greennest/Util/icons.dart';
+import 'package:greennest/Util/sizes.dart';
+import 'package:greennest/Util/strings.dart';
+import 'package:greennest/Widget/custom_text.dart';
+import 'package:greennest/Widget/custom_text_field2.dart';
 import 'package:greennest/services/api_service.dart';
 import 'dart:convert';
 import 'cart_screen.dart';
@@ -43,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final response = await ApiService.getUserByEmail(widget.email);
     if (response.statusCode == 200) {
       final user = jsonDecode(response.body);
+
       setState(() {
         username = user['name'] ?? '';
       });
@@ -65,83 +77,121 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: white,
+      //--------------------- APPBAR ---------------------//
       appBar: AppBar(
-        title: Text('Welcome, $username'),
+        backgroundColor: white,
+        title: CustomText(
+            text: 'Welcome, $username',
+            textColor: black,
+            textSize: GSizes.fontSizeLg,
+            fontWeight: FontWeight.bold),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    ProfileScreen(email: widget.email, token: widget.token),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(profileHome),
+                radius: 20,
+              ),
+              onTap: () => context.push(
+                ProfileScreen(email: widget.email, token: widget.token),
               ),
             ),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(hintText: 'Search plants...'),
-              onChanged: (val) {
-                setState(() => searchQuery = val);
-                fetchPlants();
-              },
+      //--------------------- BODY ---------------------//
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: Spacing.all8,
+              child: CustomText(
+                  text:
+                      '''Welcome to Green Harbor, your go-to destination for all things green and thriving! 🌿''',
+                  textColor: black,
+                  textSize: GSizes.fontSizeSm,
+                  fontWeight: FontWeight.normal),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: plants.length,
-              itemBuilder: (context, index) {
-                final plant = plants[index];
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  child: ListTile(
-                    leading: Image.network(plant['imageUrl'],
-                        width: 50, height: 50, fit: BoxFit.cover),
-                    title: Text(plant['name']),
-                    subtitle: Text("₹${plant['price']}"),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add_shopping_cart),
-                      onPressed: () => addToCart(plant),
+            Padding(
+              padding: Spacing.all8,
+              child: CustomTextField2(
+                  hintText: searchPlants,
+                  keyboardType: TextInputType.text,
+                  textFieldImage: treeHome),
+            ),
+            //--------------------- PLANT LIST ---------------------//
+            Expanded(
+              child: ListView.builder(
+                itemCount: plants.length,
+                itemBuilder: (context, index) {
+                  final plant = plants[index];
+                  return Container(
+                    decoration: BoxDecoration(
+                        color: white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                            offset: const Offset(0,
+                                4), // You can make it (0, 0) for equal all sides
+                          ),
+                        ],
+                        border: Border.all(color: borderGrey),
+                        borderRadius:
+                            BorderRadius.circular(GSizes.borderRadiusMd)),
+                    margin: Spacing.all8,
+                    child: ListTile(
+                      leading: Image.network(plant['imageUrl'],
+                          width: 50, height: 50, fit: BoxFit.cover),
+                      title: Text(plant['name']),
+                      subtitle: Text("₹${plant['price']}"),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.add_shopping_cart),
+                        onPressed: () => addToCart(plant),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      //--------------------- cART BOX ---------------------//
       bottomNavigationBar: cart.isNotEmpty
           ? GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CartScreen(
-                    token: widget.token,
-                    cart: cart,
-                    email: widget.email,
-                    onOrderPlaced: () {
-                      setState(() {
-                        cart.clear(); // Clear cart in HomeScreen too
-                      });
-                    },
-                  ),
+              onTap: () => context.push(
+                CartScreen(
+                  token: widget.token,
+                  cart: cart,
+                  email: widget.email,
+                  onOrderPlaced: () {
+                    setState(() {
+                      cart.clear();
+                    });
+                  },
                 ),
               ),
               child: Container(
-                color: Colors.green,
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                height: context.heightPct(11),
+                color: cartBoxColor,
+                padding: Spacing.all16,
+                child: Column(
                   children: [
-                    Text('${cart.length} items in cart',
-                        style: const TextStyle(color: Colors.white)),
-                    Text('Total: ₹${getTotalAmount()}',
-                        style: const TextStyle(color: Colors.white)),
+                    CustomText(
+                        text: '${cart.length} items added ➲',
+                        textColor: white,
+                        textSize: GSizes.fontSizeLg,
+                        fontWeight: FontWeight.bold),
+                    CustomText(
+                        text: 'Total: ₹${getTotalAmount()}',
+                        textColor: white,
+                        textSize: GSizes.fontSizeMd,
+                        fontWeight: FontWeight.normal),
                   ],
                 ),
               ),

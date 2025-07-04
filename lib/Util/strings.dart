@@ -45,3 +45,7 @@ const forgotPasswordSubHeadline =
     "No worries! Reset your password and get back on track.";
 const changePassword = "Change Password";
 const newPassword = "New Password";
+
+//----------- HOME SCREEN -----------//
+
+const searchPlants = 'Search Plants..';
