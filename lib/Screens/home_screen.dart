@@ -256,18 +256,21 @@ class _HomeScreenState extends State<HomeScreen> {
       //--------------------- cART BOX ---------------------//
       bottomNavigationBar: cart.isNotEmpty
           ? GestureDetector(
-              onTap: () => context.push(
-                CartScreen(
-                  token: widget.token,
-                  cart: cart,
-                  email: widget.email,
-                  onOrderPlaced: () {
-                    setState(() {
-                      cart.clear();
-                    });
-                  },
-                ),
-              ),
+              onTap: () => context.push(CartScreen(
+                token: widget.token,
+                cart: cart,
+                email: widget.email,
+                onOrderPlaced: () {
+                  setState(() {
+                    cart.clear();
+                  });
+                },
+                onCartUpdated: (updatedCart) {
+                  setState(() {
+                    cart = updatedCart;
+                  });
+                },
+              )),
               child: Container(
                 height: context.heightPct(11),
                 color: cartBoxColor,

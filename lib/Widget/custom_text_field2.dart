@@ -57,7 +57,7 @@ class _CustomTextField2State extends State<CustomTextField2> {
         keyboardType: widget.keyboardType,
         onChanged: (val) {
           if (widget.onChanged != null) {
-            widget.onChanged!(val); // ✅ notify parent
+            widget.onChanged!(val);
           }
         },
         decoration: InputDecoration(

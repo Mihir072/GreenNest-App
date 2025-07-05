@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:greennest/Helper/email_request.dart';
+import 'package:greennest/Util/colors.dart';
 import 'package:greennest/services/api_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -12,13 +12,15 @@ class CartScreen extends StatefulWidget {
   final String email;
   final List<dynamic> cart;
   final VoidCallback? onOrderPlaced;
+  final void Function(List<dynamic>)? onCartUpdated;
 
   const CartScreen(
       {super.key,
       required this.token,
       required this.cart,
       required this.email,
-      this.onOrderPlaced});
+      this.onOrderPlaced,
+      this.onCartUpdated});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -93,36 +95,38 @@ class _CartScreenState extends State<CartScreen> {
       });
       widget.onOrderPlaced?.call();
       Fluttertoast.showToast(msg: 'Order Placed Successfully');
-      final email = userInfo['email'] ?? 'user@example.com';
-      final name = userInfo['name'] ?? 'User';
-
-      final message = '''
-Hi $name,
-
-Thank you for your order from GreenNest!
-Total Amount: ₹$totalAmount
-Delivery Address: $address
-
-We’ll notify you when your plants are shipped.
-
-Regards,
-GreenNest Team
-''';
-
-      final emailRequest = EmailRequest(
-        toEmail: email,
-        subject: 'GreenNest - Order Confirmation',
-        message: message,
-      );
-
-      await ApiService.sendOrderEmail(
-        token: widget.token,
-        emailRequest: emailRequest,
-      );
-
       Navigator.pop(context);
     } else {
       Fluttertoast.showToast(msg: 'Failed to place order');
+    }
+  }
+
+  void removeItem(int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Remove Item"),
+        content: const Text(
+            "Are you sure you want to remove this item from the cart?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("Remove", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() {
+        cart.removeAt(index);
+      });
+      widget.onCartUpdated?.call(cart);
+      Fluttertoast.showToast(msg: 'Item removed from cart');
     }
   }
 
@@ -139,22 +143,45 @@ GreenNest Team
               itemCount: cart.length,
               itemBuilder: (context, index) {
                 final item = cart[index];
-                return ListTile(
-                  leading:
-                      Image.network(item['imageUrl'], width: 50, height: 50),
-                  title: Text(item['name']),
-                  subtitle: Text("₹${item['price']}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () => decreaseQuantity(index)),
-                      Text(item['quantity'].toString()),
-                      IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => increaseQuantity(index)),
-                    ],
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: grey)),
+                    child: ListTile(
+                      leading: Image.network(item['imageUrl'],
+                          width: 50, height: 50),
+                      title: Text(item['name']),
+                      subtitle: Text("₹${item['price']}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(36),
+                                border: Border.all(color: grey)),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: () => decreaseQuantity(index),
+                                ),
+                                Text(item['quantity'].toString()),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => increaseQuantity(index),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => removeItem(index),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
